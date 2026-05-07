@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ProfePortuguês — Português de Portugal</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Crimson+Pro:ital,wght@0,300;0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --verde:    #1a6b3a; --verde-m: #2d9a57; --verde-s: #e8f5ee;
+  --amarelo:  #f5c842; --amarelo-s: #fef9e7;
+  --marfim:   #faf7f0; --bege: #f0ebe0;
+  --texto:    #1c1a16; --cinza: #6b6860;
+  --branco:   #ffffff; --vermelho: #c0392b;
+  --sombra:   rgba(26,107,58,0.13);
+}
+html, body { height: 100%; background: var(--marfim); font-family: 'Crimson Pro', Georgia, serif; color: var(--texto); font-size: 18px; }
+.app { display: flex; flex-direction: column; height: 100dvh; max-width: 800px; margin: 0 auto; }
+
+/* header */
+header { background: var(--verde); color: #fff; padding: 14px 22px; display: flex; align-items: center; gap: 14px; flex-shrink: 0; position: relative; overflow: hidden; }
+header::before { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: var(--amarelo); opacity: .12; border-radius: 50%; }
+.logo { width: 48px; height: 48px; background: var(--amarelo); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; flex-shrink: 0; box-shadow: 0 3px 10px rgba(0,0,0,.2); position: relative; z-index:1; }
+.h-text { flex: 1; position: relative; z-index:1; }
+.h-text h1 { font-family: 'Playfair Display', serif; font-size: 1.25rem; line-height: 1.1; }
+.h-text p { font-size: .82rem; opacity: .8; font-style: italic; margin-top: 2px; }
+#lvlBadge { background: var(--amarelo); color: var(--verde); font-weight: 700; font-size: .75rem; padding: 4px 12px; border-radius: 20px; white-space: nowrap; position: relative; z-index:1; }
+
+/* tabs */
+.tabbar { display: flex; background: var(--bege); border-bottom: 1px solid #ddd8cc; flex-shrink: 0; }
+.tabbar button { flex: 1; padding: 9px 4px; border: none; background: none; font-family: 'Crimson Pro', serif; font-size: .88rem; color: var(--cinza); cursor: pointer; border-bottom: 3px solid transparent; transition: all .18s; -webkit-tap-highlight-color: transparent; }
+.tabbar button.active { color: var(--verde); border-bottom-color: var(--verde); font-weight: 600; }
+.tabbar button:hover:not(.active) { color: var(--verde-m); background: rgba(45,154,87,.06); }
+
+/* messages */
+.messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 20px 18px; display: flex; flex-direction: column; gap: 16px; scroll-behavior: smooth; }
+.messages::-webkit-scrollbar { width: 5px; }
+.messages::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
+.msg { display: flex; align-items: flex-end; gap: 10px; animation: fadeUp .3s ease both; }
+.msg.user { flex-direction: row-reverse; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(8px); } to { opacity:1; transform:translateY(0); } }
+.av { width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; }
+.msg.bot .av { background: var(--verde); }
+.msg.user .av { background: var(--amarelo); }
+.bubble { max-width: 74%; padding: 11px 16px; border-radius: 18px; line-height: 1.6; font-size: .98rem; }
+.msg.bot .bubble { background: var(--branco); border: 1px solid #e0dbd0; border-bottom-left-radius: 4px; box-shadow: 0 2px 8px var(--sombra); }
+.msg.user .bubble { background: var(--verde); color: #fff; border-bottom-right-radius: 4px; }
+.play-btn { display: inline-flex; align-items: center; gap: 5px; margin-top: 9px; padding: 4px 14px; border: 1.5px solid var(--verde-m); border-radius: 14px; background: var(--verde-s); color: var(--verde); font-size: .82rem; font-family: 'Crimson Pro', serif; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.play-btn:hover, .play-btn.speaking { background: var(--verde); color: #fff; }
+.play-btn.speaking { animation: pulsar 1s infinite; }
+@keyframes pulsar { 0%,100%{opacity:1} 50%{opacity:.55} }
+
+/* typing */
+.typing { display:flex; align-items:flex-end; gap:10px; flex-shrink:0; padding: 0 18px 8px; }
+.typing.hidden { display:none; }
+.t-dots { background: var(--branco); border: 1px solid #e0dbd0; border-radius: 18px; border-bottom-left-radius: 4px; padding: 13px 16px; display:flex; gap:5px; box-shadow: 0 2px 8px var(--sombra); }
+.dot { width:7px; height:7px; background:var(--verde-m); border-radius:50%; animation: saltar 1.2s infinite; }
+.dot:nth-child(2){animation-delay:.2s} .dot:nth-child(3){animation-delay:.4s}
+@keyframes saltar { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-7px)} }
+
+/* suggestions */
+.suggestions { padding: 6px 18px 10px; display: flex; gap: 7px; flex-wrap: wrap; background: var(--branco); flex-shrink: 0; }
+.sugg { padding: 5px 14px; border: 1.5px solid var(--verde-m); border-radius: 20px; background: none; color: var(--verde); font-family: 'Crimson Pro', serif; font-size: .84rem; cursor: pointer; transition: all .15s; -webkit-tap-highlight-color: transparent; }
+.sugg:hover, .sugg:active { background: var(--verde); color: #fff; }
+
+/* voice area */
+.voice-area { flex-shrink: 0; padding: 10px 18px 16px; background: var(--branco); border-top: 1px solid #e0dbd0; }
+.viz-row { display: flex; align-items: center; justify-content: center; gap: 4px; height: 32px; margin-bottom: 6px; }
+.bv { width: 4px; background: var(--verde-m); border-radius: 2px; transition: height .08s ease; opacity: 0; height: 4px; }
+.viz-row.ativo .bv { opacity: 1; }
+.status-strip { text-align: center; font-size: .82rem; color: var(--cinza); font-style: italic; min-height: 18px; margin-bottom: 8px; }
+.controls { display: flex; gap: 10px; align-items: flex-end; }
+#txtInput { flex: 1; padding: 11px 15px; border: 1.5px solid #cbc7bc; border-radius: 22px; font-family: 'Crimson Pro', serif; font-size: 1rem; background: var(--marfim); outline: none; transition: border-color .2s; resize: none; max-height: 100px; -webkit-appearance: none; }
+#txtInput:focus { border-color: var(--verde); }
+#txtInput::placeholder { color: #bbb; }
+.icon-btn { width: 48px; height: 48px; border-radius: 50%; border: none; display: flex; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; transition: all .18s; flex-shrink: 0; -webkit-tap-highlight-color: transparent; }
+#micBtn { background: var(--verde); color: #fff; }
+#micBtn:active { background: var(--verde-m); transform: scale(.93); }
+#micBtn.recording { background: var(--vermelho); animation: piscar 1s infinite; }
+#micBtn:disabled { background: #bbb; cursor: not-allowed; }
+@keyframes piscar { 0%,100%{box-shadow:0 0 0 0 rgba(192,57,43,.4)} 50%{box-shadow:0 0 0 8px rgba(192,57,43,0)} }
+#sendBtn { background: var(--amarelo); color: var(--verde); }
+#sendBtn:active:not(:disabled) { transform: scale(.93); }
+#sendBtn:disabled { background: #ddd; color: #aaa; cursor: default; }
+
+/* aviso compatibilidade */
+#avisoMic { display:none; margin-bottom:8px; padding: 8px 13px; background: #fff3cd; border-left: 3px solid var(--amarelo); border-radius: 6px; font-size: .82rem; color: #7a5c00; line-height: 1.4; }
+</style>
+</head>
+<body>
+<div class="app">
+
+<header>
+  <div class="logo">🎓</div>
+  <div class="h-text">
+    <h1>ProfePortuguês</h1>
+    <p>O seu professor virtual · Português de Portugal</p>
+  </div>
+  <div id="lvlBadge">Iniciante</div>
+</header>
+
+<div class="tabbar" id="nivelBar">
+  <button class="active" data-nivel="iniciante">🌱 Iniciante</button>
+  <button data-nivel="intermediario">📖 Intermédio</button>
+  <button data-nivel="avancado">🚀 Avançado</button>
+</div>
+<div class="tabbar" id="topicBar" style="background:#fff;border-bottom:1px solid #e8e4da;">
+  <button class="active" data-topic="livre">💬 Livre</button>
+  <button data-topic="pronuncia">🗣️ Pronúncia</button>
+  <button data-topic="vocabulario">📚 Vocabulário</button>
+  <button data-topic="gramatica">✏️ Gramática</button>
+  <button data-topic="cultura">🇵🇹 Cultura</button>
+</div>
+
+<div class="messages" id="messages"></div>
+
+<div class="typing hidden" id="typing">
+  <div class="av" style="background:var(--verde)">🎓</div>
+  <div class="t-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
+</div>
+
+<div class="suggestions" id="suggestions"></div>
+
+<div class="voice-area">
+  <div id="avisoMic"></div>
+  <div class="viz-row" id="vizRow"></div>
+  <div class="status-strip" id="statusStrip">Toque no microfone para falar ou escreva abaixo</div>
+  <div class="controls">
+    <textarea id="txtInput" rows="1" placeholder="Escreva ou use o microfone…"></textarea>
+    <button class="icon-btn" id="micBtn" title="Falar">🎙️</button>
+    <button class="icon-btn" id="sendBtn" title="Enviar" disabled>➤</button>
+  </div>
+</div>
+
+<script>
+// ── ESTADO ──
+let nivel     = 'iniciante';
+let topic     = 'livre';
+let history   = [];
+let userName  = '';
+let turnCount = 0;
+let isRecording = false;
+let isSpeaking  = false;
+let vizTimer    = null;
+let recognition = null;
+let temMicrofone = false; // detectado após primeiro clique
+
+const NIVEL_LABELS = { iniciante:'Iniciante', intermediario:'Intermédio', avancado:'Avançado' };
+
+// ── DETECTAR SUPORTE ──
+const temSpeechRec = !!(window.SpeechRecognition || window.webkitSpeechRecognition);
+const temSpeechSyn = !!window.speechSynthesis;
+
+// ── SYSTEM PROMPT ──
+function buildPrompt() {
+  return `És o "ProfePortuguês", um professor de português europeu (de Portugal) para falantes de espanhol castelhano.
+Nível do aluno: ${nivel}. Tópico: ${topic}.${userName ? ' Nome: ' + userName + '.' : ''} Turno: ${turnCount}.
+
+REGRAS ABSOLUTAS:
+1. Responde SEMPRE em português de Portugal. Nunca uses português do Brasil.
+2. PROIBIDO o gerúndio. Usa sempre "estar a + infinitivo": "estou a falar", "estou a ouvir", "estou a pensar". Nunca: "estou falando", "estou pensando".
+3. Vocabulário português: "fixe", "giro", "bué", "autocarro", "casa de banho", "telemóvel", "pequeno-almoço", "comboio", "ecrã", "miúdo/miúda".
+4. Usa espanhol APENAS para traduzir uma palavra isolada ou explicar uma regra gramatical. Nunca mistures espanhol no meio de frases portuguesas.
+5. Nível iniciante: frases simples, compara com espanhol. Intermédio: conjuntivo, expressões idiomáticas. Avançado: calão, nuances regionais.
+6. Corrige erros com gentileza, mostrando a forma correcta entre «».
+7. Assinala falsos amigos entre espanhol e português quando surgem.
+8. No fim de cada resposta inclui uma pergunta, exercício curto ou curiosidade sobre Portugal: fado, gastronomia, história, Lisboa, Porto, Alentejo, futebol português, Pastéis de Belém, etc.
+9. FORMATO VOZ: a resposta será lida em voz alta. Escreve só texto corrido simples, sem asteriscos, sem travessões, sem markdown, sem símbolos especiais. Parágrafos separados por linha em branco.
+10. Máximo 3 parágrafos curtos. Sê caloroso, encorajador e natural.`;
+}
+
+// ── LLM (Pollinations AI — gratuito, sem chave) ──
+async function callLLM(userText) {
+  const messages = [
+    { role: 'system', content: buildPrompt() },
+    ...history,
+    { role: 'user', content: userText }
+  ];
+  const res = await fetch('https://text.pollinations.ai/openai', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ model: 'openai', messages, temperature: 0.7, max_tokens: 400, private: true })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  return (data.choices?.[0]?.message?.content || '').trim();
+}
+
+// ── MICROFONE — apenas Web Speech API, sem getUserMedia ──
+function criarRecognition() {
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SR) return null;
+
+  const rec = new SR();
+  rec.lang = 'pt-PT';
+  rec.interimResults = true;
+  rec.maxAlternatives = 1;
+  rec.continuous = false;
+
+  rec.onstart = () => {
+    isRecording = true;
+    micBtn.classList.add('recording');
+    micBtn.textContent = '⏹️';
+    micBtn.disabled = false;
+    setStatus('🔴 A gravar… fale agora');
+    startViz();
+  };
+
+  rec.onresult = (e) => {
+    const txt = Array.from(e.results).map(r => r[0].transcript).join('');
+    txtInput.value = txt;
+    autoResize(txtInput);
+    sendBtn.disabled = !txt.trim();
+  };
+
+  rec.onend = () => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎙️';
+    micBtn.disabled = false;
+    stopViz();
+    const txt = txtInput.value.trim();
+    if (txt) { setStatus(''); sendMessage(); }
+    else { setStatus('Não ouvi nada. Tente outra vez.'); }
+  };
+
+  rec.onerror = (e) => {
+    isRecording = false;
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎙️';
+    micBtn.disabled = false;
+    stopViz();
+    console.log('Speech error:', e.error);
+    if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+      mostrarAvisoMic('O acesso ao microfone foi negado. Nas definições do seu browser/iPhone, active o microfone para este site e recarregue a página.');
+    } else if (e.error === 'no-speech') {
+      setStatus('Não ouvi nada. Tente outra vez.');
+    } else if (e.error === 'network') {
+      setStatus('Erro de rede no reconhecimento de voz.');
+    } else {
+      setStatus('Erro: ' + e.error + '. Tente escrever.');
+    }
+  };
+
+  return rec;
+}
+
+function toggleMic() {
+  // parar se já está a gravar
+  if (isRecording && recognition) {
+    recognition.stop();
+    return;
+  }
+
+  // silenciar voz se está a falar
+  if (isSpeaking) {
+    window.speechSynthesis.cancel();
+    isSpeaking = false;
+  }
+
+  // criar/recriar recognition (evita estado inválido entre chamadas)
+  recognition = criarRecognition();
+
+  if (!recognition) {
+    mostrarAvisoMic('O reconhecimento de voz não está disponível neste browser. Use o Google Chrome no computador ou o Safari no iPhone. Pode escrever as respostas abaixo.');
+    return;
+  }
+
+  esconderAvisoMic();
+  txtInput.value = '';
+  sendBtn.disabled = true;
+  micBtn.disabled = true; // prevenir duplo-clique até onstart
+
+  try {
+    recognition.start();
+  } catch (err) {
+    micBtn.disabled = false;
+    console.error('start() error:', err);
+    setStatus('Erro ao iniciar o microfone. Tente escrever.');
+  }
+}
+
+// ── VOZ — síntese pt-PT ──
+function getVoice() {
+  if (!temSpeechSyn) return null;
+  const vs = window.speechSynthesis.getVoices();
+  return vs.find(v => v.lang === 'pt-PT')
+      || vs.find(v => v.lang === 'pt-BR')
+      || vs.find(v => v.lang.startsWith('pt'))
+      || null;
+}
+
+function falar(text, btn) {
+  if (!temSpeechSyn) return;
+  window.speechSynthesis.cancel();
+
+  const limpo = text
+    .replace(/[«»*_`#\-–—]/g, ' ')
+    .replace(/\n+/g, '. ')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+
+  const utt = new SpeechSynthesisUtterance(limpo);
+  utt.lang  = 'pt-PT';
+  utt.rate  = 0.88;
+  utt.pitch = 1.0;
+  const voz = getVoice();
+  if (voz) utt.voice = voz;
+
+  const fim = () => {
+    isSpeaking = false;
+    setStatus('');
+    if (btn) { btn.classList.remove('speaking'); btn.textContent = '🔊 Ouvir'; }
+  };
+  utt.onend   = fim;
+  utt.onerror = fim;
+
+  if (btn) { btn.classList.add('speaking'); btn.textContent = '⏹ Parar'; }
+  isSpeaking = true;
+  setStatus('🔊 O professor está a falar…');
+  window.speechSynthesis.speak(utt);
+}
+
+function toggleFalar(btn) {
+  if (btn.classList.contains('speaking')) {
+    window.speechSynthesis.cancel();
+    btn.classList.remove('speaking');
+    btn.textContent = '🔊 Ouvir';
+    isSpeaking = false;
+    setStatus('');
+  } else {
+    falar(btn.dataset.text, btn);
+  }
+}
+
+// ── VISUALIZADOR ──
+function buildViz() {
+  const row = document.getElementById('vizRow');
+  for (let i = 0; i < 20; i++) {
+    const b = document.createElement('div');
+    b.className = 'bv';
+    row.appendChild(b);
+  }
+}
+function startViz() {
+  const bars = document.querySelectorAll('.bv');
+  document.getElementById('vizRow').classList.add('ativo');
+  vizTimer = setInterval(() => bars.forEach(b => { b.style.height = (Math.random()*26+4)+'px'; }), 110);
+}
+function stopViz() {
+  clearInterval(vizTimer);
+  document.getElementById('vizRow').classList.remove('ativo');
+  document.querySelectorAll('.bv').forEach(b => { b.style.height = '4px'; });
+}
+
+// ── UI ──
+function setStatus(msg) {
+  document.getElementById('statusStrip').textContent = msg || 'Toque no microfone para falar ou escreva abaixo';
+}
+function mostrarAvisoMic(msg) {
+  const el = document.getElementById('avisoMic');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  setStatus('');
+}
+function esconderAvisoMic() {
+  document.getElementById('avisoMic').style.display = 'none';
+}
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 100)+'px'; }
+function scrollFim() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight; }
+
+function addUserMsg(text) {
+  document.getElementById('messages').insertAdjacentHTML('beforeend',
+    `<div class="msg user"><div class="bubble">${esc(text)}</div><div class="av">😊</div></div>`);
+  scrollFim();
+}
+
+function addBotMsg(text) {
+  const id   = 'pb_' + Date.now();
+  const html = esc(text).replace(/\n/g, '<br>');
+  const btnVoz = temSpeechSyn
+    ? `<br><button class="play-btn" id="${id}" onclick="toggleFalar(this)">🔊 Ouvir</button>`
+    : '';
+  document.getElementById('messages').insertAdjacentHTML('beforeend', `
+    <div class="msg bot">
+      <div class="av">🎓</div>
+      <div class="bubble">${html}${btnVoz}</div>
+    </div>`);
+  scrollFim();
+  if (temSpeechSyn) {
+    const btn = document.getElementById(id);
+    btn.dataset.text = text;
+    // no iOS Safari a síntese só funciona dentro de um gesto do utilizador,
+    // por isso NÃO auto-reproduzimos — o utilizador clica em "Ouvir"
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (!isIOS) setTimeout(() => falar(text, btn), 400);
+  }
+}
+
+function showTyping(show) {
+  document.getElementById('typing').classList.toggle('hidden', !show);
+  if (show) scrollFim();
+}
+
+// ── SUGESTÕES ──
+const SUGESTOES = {
+  livre:       ['Como está?','O que fazemos hoje?','Dê-me um exemplo','Quero praticar um diálogo'],
+  pronuncia:   ['Como se pronuncia o "ão"?','O que é o "lh"?','Fale mais devagar','Repita, por favor'],
+  vocabulario: ['Ensine-me calão português','Como se diz "genial"?','Palavras do quotidiano','Falsos amigos!'],
+  gramatica:   ['Quando usar ser ou estar?','Como se forma o pretérito?','O que é o conjuntivo?','Por vs Para'],
+  cultura:     ['O que é o fado?','Fale-me de Sintra','Gastronomia portuguesa','História de Portugal'],
+};
+function actualizarSugestoes() {
+  const pool   = SUGESTOES[topic] || SUGESTOES.livre;
+  const picked = [...pool].sort(() => Math.random()-.5).slice(0, 3);
+  document.getElementById('suggestions').innerHTML =
+    picked.map(s => `<button class="sugg" onclick="usarSugestao(this)">${s}</button>`).join('');
+}
+function usarSugestao(btn) {
+  txtInput.value = btn.textContent;
+  autoResize(txtInput);
+  sendBtn.disabled = false;
+  sendMessage();
+}
+
+// ── ENVIAR ──
+async function sendMessage() {
+  const text = txtInput.value.trim();
+  if (!text) return;
+
+  if (temSpeechSyn) window.speechSynthesis.cancel();
+  txtInput.value = '';
+  txtInput.style.height = 'auto';
+  sendBtn.disabled = true;
+  micBtn.disabled  = true;
+
+  if (!userName) {
+    const m = text.match(/(?:chamo.me|me chamo|o meu nome [eé]|me llamo|mi nombre es)\s*([A-Za-zÀ-ú]{3,18})/i)
+           || text.match(/^([A-Za-zÀ-ú]{3,18})$/);
+    if (m) userName = m[1].charAt(0).toUpperCase() + m[1].slice(1).toLowerCase();
+  }
+
+  addUserMsg(text);
+  history.push({ role:'user', content:text });
+  turnCount++;
+  showTyping(true);
+  setStatus('💭 A pensar…');
+
+  try {
+    const reply = await callLLM(text);
+    history.push({ role:'assistant', content:reply });
+    showTyping(false);
+    addBotMsg(reply);
+    actualizarSugestoes();
+    setStatus('');
+  } catch(err) {
+    showTyping(false);
+    addBotMsg('Desculpe, não consegui obter resposta. Verifique a sua ligação à internet e tente de novo.');
+    setStatus('Erro de ligação');
+    console.error(err);
+  }
+  micBtn.disabled = false;
+}
+
+// ── ARRANQUE ──
+const micBtn   = document.getElementById('micBtn');
+const sendBtn  = document.getElementById('sendBtn');
+const txtInput = document.getElementById('txtInput');
+
+buildViz();
+
+// vozes carregam de forma assíncrona
+if (temSpeechSyn) window.speechSynthesis.addEventListener('voiceschanged', () => {});
+
+// se não há suporte a microfone, desactiva botão
+if (!temSpeechRec) {
+  micBtn.disabled = true;
+  micBtn.title = 'Sem suporte de voz neste browser';
+  mostrarAvisoMic('O reconhecimento de voz não está disponível neste browser. Use o Safari no iPhone ou Chrome no computador. Pode escrever as respostas abaixo.');
+}
+
+micBtn.addEventListener('click', toggleMic);
+sendBtn.addEventListener('click', sendMessage);
+txtInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+});
+txtInput.addEventListener('input', () => {
+  autoResize(txtInput);
+  sendBtn.disabled = !txtInput.value.trim();
+});
+
+// separadores nível
+document.getElementById('nivelBar').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-nivel]');
+  if (!btn) return;
+  nivel = btn.dataset.nivel;
+  document.querySelectorAll('#nivelBar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('lvlBadge').textContent = NIVEL_LABELS[nivel];
+  const msgs = {
+    iniciante:     'Muito bem! Vamos devagar, passo a passo. Como se chama?',
+    intermediario: 'Óptimo! A partir de agora vou ser um pouco mais exigente.',
+    avancado:      'Excelente! Hora de falar como um português a sério, sem facilitismos!'
+  };
+  addBotMsg(msgs[nivel]);
+});
+
+// separadores tópico
+document.getElementById('topicBar').addEventListener('click', e => {
+  const btn = e.target.closest('button[data-topic]');
+  if (!btn) return;
+  topic = btn.dataset.topic;
+  document.querySelectorAll('#topicBar button').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  const msgs = {
+    livre:       'Conversa livre! Sobre o que quer falar hoje?',
+    pronuncia:   'Vamos trabalhar a pronúncia! O português europeu tem sons bem distintos do espanhol.',
+    vocabulario: 'Vamos enriquecer o seu vocabulário! Cada palavra nova é uma porta que se abre.',
+    gramatica:   'Gramática! Explicarei as regras e praticamos juntos em português.',
+    cultura:     'Portugal é um país fascinante! A língua e a cultura andam sempre de mãos dadas.'
+  };
+  addBotMsg(msgs[topic]);
+  actualizarSugestoes();
+});
+
+// boas-vindas
+window.addEventListener('load', () => {
+  actualizarSugestoes();
+  setTimeout(() => {
+    addBotMsg('Olá! Bem-vindo à sua aula de português europeu, o de Portugal.\n\nAqui vamos falar principalmente em português. Quando precisar de ajuda em espanhol, digo-lhe.\n\nComo se chama? Pode responder em espanhol ou tentar em português. Sem medo!');
+  }, 500);
+});
+</script>
+</body>
+</html>
